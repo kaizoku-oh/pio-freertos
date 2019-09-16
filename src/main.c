@@ -1,15 +1,17 @@
 #include "main.h"
 
-static void LED_Init(void);
+static void Clock_Config(void);
+static void GPIO_Init(void);
 
-/* The task functions. */
+/* The tasks functions. */
 void vTask1(void *pvParameters);
 void vTask2(void *pvParameters);
 
 int main(void)
 {
   HAL_Init();
-  LED_Init();
+  Clock_Config();
+  GPIO_Init();
 
   /* Create one of the two tasks. */
   xTaskCreate(vTask1                ,	/* Pointer to the function that implements the task. */
@@ -22,17 +24,20 @@ int main(void)
   /* Create the other task in exactly the same way. */
   xTaskCreate(vTask2, "Task 2", 1000, NULL, 1, NULL);
 
-  /* Start the scheduler to start the tasks executing. */
+  /* Start the scheduler to start executing the tasks . */
   vTaskStartScheduler();
 
   while (1)
   {}
 }
 
-void LED_Init()
+static void Clock_Config(void)
 {
   LED_GPIO_CLK_ENABLE();
+}
 
+static void GPIO_Init(void)
+{
   GPIO_InitTypeDef BLUE_LED_GPIO_InitStruct;
   BLUE_LED_GPIO_InitStruct.Pin = BLUE_LED_PIN;
   BLUE_LED_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -46,32 +51,25 @@ void LED_Init()
   RED_LED_GPIO_InitStruct.Pull = GPIO_PULLUP;
   RED_LED_GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(LED_GPIO_PORT, &RED_LED_GPIO_InitStruct);
-
-  GPIO_InitTypeDef GREEN_LED_GPIO_InitStruct;
-  GREEN_LED_GPIO_InitStruct.Pin = GREEN_LED_PIN;
-  GREEN_LED_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GREEN_LED_GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GREEN_LED_GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-  HAL_GPIO_Init(LED_GPIO_PORT, &GREEN_LED_GPIO_InitStruct);
 }
 
 void vTask1(void *pvParameters)
 {
-  const char *pcTaskName = "Task 1 is running\r\n";
+  const TickType_t xDelayInMs = pdMS_TO_TICKS(500);
   for(;;)
   {
     HAL_GPIO_TogglePin(LED_GPIO_PORT, RED_LED_PIN);
-    vTaskDelay(500);
+    vTaskDelay(xDelayInMs);
   }
 }
 
 void vTask2(void *pvParameters)
 {
-  const char *pcTaskName = "Task 2 is running\r\n";
+  const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
   for(;;)
   {
     HAL_GPIO_TogglePin(LED_GPIO_PORT, BLUE_LED_PIN);
-    vTaskDelay(1000);
+    vTaskDelay(xDelayInMs);
   }
 }
 
@@ -87,12 +85,13 @@ uint32_t HAL_GetTick(void)
   return xTaskGetTickCount(); 
 }
 
-/* dummy function to avoid the standard initialization code */
+/* Dummy function to avoid the standard initialization code */
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
   return HAL_OK;
 }
 
+/* Fault Handlers */
 void HardFault_Handler(void)
 {
   while (1) {}
@@ -112,15 +111,3 @@ void UsageFault_Handler(void)
 {
   while (1) {}
 }
-
-void NMI_Handler(void)
-{}
-
-void SVC_Handler(void)
-{}
-
-void DebugMon_Handler(void)
-{}
-
-void PendSV_Handler(void)
-{}

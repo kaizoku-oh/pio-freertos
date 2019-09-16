@@ -10,8 +10,6 @@
 // #include "semphr.h"
 // #include "event_groups.h"
 
-// #include "cmsis_os.h"
-
 #define GREEN_LED_PIN                          GPIO_PIN_0
 #define BLUE_LED_PIN                           GPIO_PIN_7
 #define RED_LED_PIN                            GPIO_PIN_14
