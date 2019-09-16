@@ -1,0 +1,6 @@
+{
+  "terminal.integrated.env.linux": {
+    "PATH": "/home/bayrem/.platformio/penv/bin:/home/bayrem/.platformio/penv:/home/bayrem/esp-open-sdk/xtensa-lx106-elf/bin:/home/bayrem/esp/xtensa-esp32-elf/bin:/home/bayrem/.mos/bin/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/home/bayrem/.mos/bin:/home/bayrem/.platformio/penv/bin:/opt/qemu:/opt/qemu/arm-softmmu",
+    "PLATFORMIO_CALLER": "vscode"
+  }
+}
