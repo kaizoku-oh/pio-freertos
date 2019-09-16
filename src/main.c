@@ -27,8 +27,7 @@ int main(void)
   /* Start the scheduler to start executing the tasks . */
   vTaskStartScheduler();
 
-  while (1)
-  {}
+  while (1) {}
 }
 
 static void Clock_Config(void)
@@ -38,24 +37,24 @@ static void Clock_Config(void)
 
 static void GPIO_Init(void)
 {
-  GPIO_InitTypeDef BLUE_LED_GPIO_InitStruct;
-  BLUE_LED_GPIO_InitStruct.Pin = BLUE_LED_PIN;
-  BLUE_LED_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  BLUE_LED_GPIO_InitStruct.Pull = GPIO_PULLUP;
-  BLUE_LED_GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-  HAL_GPIO_Init(LED_GPIO_PORT, &BLUE_LED_GPIO_InitStruct);
+  GPIO_InitTypeDef LED_GPIO_InitStruct;
+  LED_GPIO_InitStruct.Pin = BLUE_LED_PIN;
+  LED_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  LED_GPIO_InitStruct.Pull = GPIO_PULLUP;
+  LED_GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(LED_GPIO_PORT, &LED_GPIO_InitStruct);
 
-  GPIO_InitTypeDef RED_LED_GPIO_InitStruct;
-  RED_LED_GPIO_InitStruct.Pin = RED_LED_PIN;
-  RED_LED_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  RED_LED_GPIO_InitStruct.Pull = GPIO_PULLUP;
-  RED_LED_GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-  HAL_GPIO_Init(LED_GPIO_PORT, &RED_LED_GPIO_InitStruct);
+  LED_GPIO_InitStruct.Pin = RED_LED_PIN;
+  LED_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  LED_GPIO_InitStruct.Pull = GPIO_PULLUP;
+  LED_GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(LED_GPIO_PORT, &LED_GPIO_InitStruct);
 }
 
 void vTask1(void *pvParameters)
 {
-  const TickType_t xDelayInMs = pdMS_TO_TICKS(500);
+  const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
+
   for(;;)
   {
     HAL_GPIO_TogglePin(LED_GPIO_PORT, RED_LED_PIN);
@@ -65,7 +64,8 @@ void vTask1(void *pvParameters)
 
 void vTask2(void *pvParameters)
 {
-  const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
+  const TickType_t xDelayInMs = pdMS_TO_TICKS(100);
+
   for(;;)
   {
     HAL_GPIO_TogglePin(LED_GPIO_PORT, BLUE_LED_PIN);
