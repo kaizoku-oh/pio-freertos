@@ -1,4 +1,6 @@
 #include "main.h"
+#include <FreeRTOS.h>
+#include <task.h>
 
 #define BLINK_DELAY_MS 100
 
@@ -84,7 +86,20 @@ void vTask2(void *pvParameters)
   }
 }
 
-void SysTick_Handler(void)
+/*void SysTick_Handler(void)
 {
   HAL_IncTick();
+}*/
+
+uint32_t HAL_GetTick(void)
+{
+    return xTaskGetTickCount(); 
+}
+
+/**
+  * dummy function to avoid the standard initialization code 
+  */
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
+{
+    return HAL_OK;
 }
