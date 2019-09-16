@@ -91,23 +91,28 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   return HAL_OK;
 }
 
+void Error_Handler()
+{
+  while (1);
+}
+
 /* Fault Handlers */
 void HardFault_Handler(void)
 {
-  while (1) {}
+  Error_Handler();
 }
 
 void MemManage_Handler(void)
 {
-  while (1) {}
+  Error_Handler();
 }
 
 void BusFault_Handler(void)
 {
-  while (1) {}
+  Error_Handler();
 }
 
 void UsageFault_Handler(void)
 {
-  while (1) {}
+  Error_Handler();
 }
