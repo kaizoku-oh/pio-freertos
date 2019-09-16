@@ -1,8 +1,4 @@
 #include "main.h"
-#include <FreeRTOS.h>
-#include <task.h>
-
-#define BLINK_DELAY_MS 100
 
 static void LED_Init(void);
 
@@ -30,16 +26,7 @@ int main(void)
   vTaskStartScheduler();
 
   while (1)
-  {
-    HAL_GPIO_TogglePin(LED_GPIO_PORT, RED_LED_PIN);
-    HAL_Delay(BLINK_DELAY_MS);
-
-    HAL_GPIO_TogglePin(LED_GPIO_PORT, BLUE_LED_PIN);
-    HAL_Delay(BLINK_DELAY_MS);
-    
-    HAL_GPIO_TogglePin(LED_GPIO_PORT, GREEN_LED_PIN);
-    HAL_Delay(BLINK_DELAY_MS);
-  }
+  {}
 }
 
 void LED_Init()
@@ -73,6 +60,7 @@ void vTask1(void *pvParameters)
   const char *pcTaskName = "Task 1 is running\r\n";
   for(;;)
   {
+    HAL_GPIO_TogglePin(LED_GPIO_PORT, RED_LED_PIN);
     vTaskDelay(500);
   }
 }
@@ -82,24 +70,57 @@ void vTask2(void *pvParameters)
   const char *pcTaskName = "Task 2 is running\r\n";
   for(;;)
   {
+    HAL_GPIO_TogglePin(LED_GPIO_PORT, BLUE_LED_PIN);
     vTaskDelay(1000);
   }
 }
 
-/*void SysTick_Handler(void)
-{
-  HAL_IncTick();
-}*/
+/*
+  void SysTick_Handler(void)
+  {
+    HAL_IncTick();
+  }
+*/
 
 uint32_t HAL_GetTick(void)
 {
-    return xTaskGetTickCount(); 
+  return xTaskGetTickCount(); 
 }
 
-/**
-  * dummy function to avoid the standard initialization code 
-  */
+/* dummy function to avoid the standard initialization code */
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
-    return HAL_OK;
+  return HAL_OK;
 }
+
+void HardFault_Handler(void)
+{
+  while (1) {}
+}
+
+void MemManage_Handler(void)
+{
+  while (1) {}
+}
+
+void BusFault_Handler(void)
+{
+  while (1) {}
+}
+
+void UsageFault_Handler(void)
+{
+  while (1) {}
+}
+
+void NMI_Handler(void)
+{}
+
+void SVC_Handler(void)
+{}
+
+void DebugMon_Handler(void)
+{}
+
+void PendSV_Handler(void)
+{}
