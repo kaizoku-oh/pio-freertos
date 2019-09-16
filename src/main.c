@@ -19,7 +19,7 @@ int main(void)
               1000                  ,	/* Stack depth - most small microcontrollers will use much less stack than this. */
               NULL                  ,	/* We are not using the task parameter. */
               1                     ,	/* This task will run at priority 1. */
-              NULL);		              /* We are not using the task handle. */
+              NULL);                  /* We are not using the task handle. */
 
   /* Create the other task in exactly the same way. */
   xTaskCreate(vTask2, "Task 2", 1000, NULL, 1, NULL);
