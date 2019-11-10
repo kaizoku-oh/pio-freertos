@@ -73,13 +73,6 @@ void vTask2(void *pvParameters)
   }
 }
 
-/*
-  void SysTick_Handler(void)
-  {
-    HAL_IncTick();
-  }
-*/
-
 uint32_t HAL_GetTick(void)
 {
   return xTaskGetTickCount(); 
