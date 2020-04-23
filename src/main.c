@@ -3,7 +3,6 @@
 static void Clock_Config(void);
 static void GPIO_Init(void);
 
-/* The tasks functions. */
 void vTask1(void *pvParameters);
 void vTask2(void *pvParameters);
 
@@ -13,18 +12,9 @@ int main(void)
   Clock_Config();
   GPIO_Init();
 
-  /* Create one of the two tasks. */
-  xTaskCreate(vTask1                ,	/* Pointer to the function that implements the task. */
-              "Task 1"              ,	/* Text name for the task.  This is to facilitate debugging only. */
-              1000                  ,	/* Stack depth - most small microcontrollers will use much less stack than this. */
-              NULL                  ,	/* We are not using the task parameter. */
-              1                     ,	/* This task will run at priority 1. */
-              NULL);                  /* We are not using the task handle. */
-
-  /* Create the other task in exactly the same way. */
+  xTaskCreate(vTask1, "Task 1", 1000, NULL, 1, NULL);
   xTaskCreate(vTask2, "Task 2", 1000, NULL, 1, NULL);
 
-  /* Start the scheduler to start executing the tasks . */
   vTaskStartScheduler();
 
   while (1) {}
