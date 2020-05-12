@@ -1,13 +1,16 @@
 #include "main.h"
 
 #define USART_BAUDRATE 115200
+#define RX_BUFFER_SIZE 32
 
 static void usart_init(void);
 static void led_thread_handler(void const * argument);
 static void usart_thread_handler(void const * argument);
 
-volatile uint8_t u08RxByte;
+uint8_t u08RxByte;
+volatile uint8_t u08Index;
 UART_HandleTypeDef stUsartHandle;
+uint8_t u08RxBuffer[RX_BUFFER_SIZE];
 
 osThreadId stLedThreadHandle;
 osThreadId stUsartThreadHandle;
@@ -87,7 +90,7 @@ static void usart_init(void)
   stUsartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
   stUsartHandle.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   stUsartHandle.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if(HAL_UART_Init(&stUsartHandle) != HAL_OK)
+  if(HAL_OK != HAL_UART_Init(&stUsartHandle))
   {
     while(1) {}
   }
@@ -97,6 +100,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *stHandle)
 {
   if(USART3 == stHandle->Instance)
   {
+    if(RX_BUFFER_SIZE == u08Index)
+    {
+      u08Index = 0;
+    }
+    u08RxBuffer[u08Index++] = u08RxByte;
     HAL_UART_Receive_IT(&stUsartHandle, &u08RxByte, sizeof(u08RxByte));
   }
 }
