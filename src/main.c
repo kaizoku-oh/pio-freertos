@@ -1,101 +1,54 @@
 #include "main.h"
 
-static void Clock_Config(void);
-static void GPIO_Init(void);
-
 void vTask1(void *pvParameters);
 void vTask2(void *pvParameters);
+void vTask3(void *pvParameters);
 
 int main(void)
 {
   HAL_Init();
-  Clock_Config();
-  GPIO_Init();
 
   xTaskCreate(vTask1, "Task 1", 1000, NULL, 1, NULL);
   xTaskCreate(vTask2, "Task 2", 1000, NULL, 1, NULL);
+  xTaskCreate(vTask3, "Task 3", 1000, NULL, 1, NULL);
 
   vTaskStartScheduler();
 
   while (1) {}
 }
 
-static void Clock_Config(void)
-{
-  LED_GPIO_CLK_ENABLE();
-}
-
-static void GPIO_Init(void)
-{
-  GPIO_InitTypeDef LED_GPIO_InitStruct;
-  LED_GPIO_InitStruct.Pin = BLUE_LED_PIN;
-  LED_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  LED_GPIO_InitStruct.Pull = GPIO_PULLUP;
-  LED_GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-  HAL_GPIO_Init(LED_GPIO_PORT, &LED_GPIO_InitStruct);
-
-  LED_GPIO_InitStruct.Pin = RED_LED_PIN;
-  LED_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  LED_GPIO_InitStruct.Pull = GPIO_PULLUP;
-  LED_GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-  HAL_GPIO_Init(LED_GPIO_PORT, &LED_GPIO_InitStruct);
-}
-
 void vTask1(void *pvParameters)
 {
   const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
 
+  BSP_LED_Init(LED_GREEN);
   for(;;)
   {
-    HAL_GPIO_TogglePin(LED_GPIO_PORT, RED_LED_PIN);
+    BSP_LED_Toggle(LED_GREEN);
     vTaskDelay(xDelayInMs);
   }
 }
 
 void vTask2(void *pvParameters)
 {
-  const TickType_t xDelayInMs = pdMS_TO_TICKS(100);
+  const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
 
+  BSP_LED_Init(LED_BLUE);
   for(;;)
   {
-    HAL_GPIO_TogglePin(LED_GPIO_PORT, BLUE_LED_PIN);
+    BSP_LED_Toggle(LED_BLUE);
     vTaskDelay(xDelayInMs);
   }
 }
 
-uint32_t HAL_GetTick(void)
+void vTask3(void *pvParameters)
 {
-  return xTaskGetTickCount(); 
-}
+  const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
 
-/* Dummy function to avoid the standard initialization code */
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
-{
-  return HAL_OK;
-}
-
-void Error_Handler()
-{
-  while (1);
-}
-
-/* Fault Handlers */
-void HardFault_Handler(void)
-{
-  Error_Handler();
-}
-
-void MemManage_Handler(void)
-{
-  Error_Handler();
-}
-
-void BusFault_Handler(void)
-{
-  Error_Handler();
-}
-
-void UsageFault_Handler(void)
-{
-  Error_Handler();
+  BSP_LED_Init(LED_RED);
+  for(;;)
+  {
+    BSP_LED_Toggle(LED_RED);
+    vTaskDelay(xDelayInMs);
+  }
 }
