@@ -1,54 +1,62 @@
 #include "main.h"
 
-void vTask1(void *pvParameters);
-void vTask2(void *pvParameters);
-void vTask3(void *pvParameters);
+void thread_1_handler(void const * argument);
+void thread_2_handler(void const * argument);
+void thread_3_handler(void const * argument);
+
+osThreadId stThread1Handle;
+osThreadId stThread2Handle;
+osThreadId stThread3Handle;
 
 int main(void)
 {
   HAL_Init();
 
-  xTaskCreate(vTask1, "Task 1", 1000, NULL, 1, NULL);
-  xTaskCreate(vTask2, "Task 2", 1000, NULL, 1, NULL);
-  xTaskCreate(vTask3, "Task 3", 1000, NULL, 1, NULL);
+  osThreadDef(thread1, thread_1_handler, osPriorityNormal, 0, 128);
+  osThreadDef(thread2, thread_2_handler, osPriorityNormal, 0, 128);
+  osThreadDef(thread3, thread_3_handler, osPriorityNormal, 0, 128);
 
-  vTaskStartScheduler();
+  stThread1Handle = osThreadCreate(osThread(thread1), NULL);
+  stThread2Handle = osThreadCreate(osThread(thread2), NULL);
+  stThread3Handle = osThreadCreate(osThread(thread3), NULL);
+
+  osKernelStart();
 
   while (1) {}
 }
 
-void vTask1(void *pvParameters)
+void thread_1_handler(void const * argument)
 {
-  const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
+  const uint32_t u32BlinkDelayMs = 1000;
 
   BSP_LED_Init(LED_GREEN);
   for(;;)
   {
     BSP_LED_Toggle(LED_GREEN);
-    vTaskDelay(xDelayInMs);
+    osDelay(u32BlinkDelayMs);
   }
 }
 
-void vTask2(void *pvParameters)
+void thread_2_handler(void const * argument)
 {
-  const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
+  const uint32_t u32BlinkDelayMs = 500;
 
   BSP_LED_Init(LED_BLUE);
   for(;;)
   {
     BSP_LED_Toggle(LED_BLUE);
-    vTaskDelay(xDelayInMs);
+    osDelay(u32BlinkDelayMs);
   }
 }
 
-void vTask3(void *pvParameters)
+void thread_3_handler(void const * argument)
 {
-  const TickType_t xDelayInMs = pdMS_TO_TICKS(1000);
+  const uint32_t u32BlinkDelayMs = 250;
 
   BSP_LED_Init(LED_RED);
   for(;;)
   {
     BSP_LED_Toggle(LED_RED);
-    vTaskDelay(xDelayInMs);
+    osDelay(u32BlinkDelayMs);
   }
 }
