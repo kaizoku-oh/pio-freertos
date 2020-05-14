@@ -3,6 +3,11 @@
 
 extern UART_HandleTypeDef stUsartHandle;
 
+void EXTI15_10_IRQHandler(void)
+{
+  HAL_GPIO_EXTI_IRQHandler(USER_BUTTON_PIN);
+}
+
 void USART3_IRQHandler(void)
 {
   HAL_UART_IRQHandler(&stUsartHandle);

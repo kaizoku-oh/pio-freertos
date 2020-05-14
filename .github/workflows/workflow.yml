@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Copy repo to container
     - uses: actions/checkout@v2
 
     - name: Set up Python
