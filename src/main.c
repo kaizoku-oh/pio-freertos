@@ -1,9 +1,56 @@
-#include "main.h"
+/* 
+ **************************************************************************************************
+ *
+ * @file    : main.c
+ * @author  : Bayrem GHARSELLAOUI
+ * @version : 1.4.0
+ * @date    : May 2020
+ * @brief   : Application entry point file
+ * 
+ **************************************************************************************************
+ * 
+ * @project   : {pio-freertos}
+ * @board     : {Nucleo 144 STM32F767Zi}
+ * @compiler  : {PlatformIO, version 4.3.3}
+ * @framework : {stm32cube}
+ * 
+ **************************************************************************************************
+ */
 
+/** @addtogroup main
+  * @{
+  */
+
+/*-----------------------------------------------------------------------------------------------*/
+/* Includes                                                                                      */
+/*-----------------------------------------------------------------------------------------------*/
+/** @defgroup main_includes Includes
+ * @{
+ */
+#include "main.h"
+/**
+  * @}
+  */
+
+/*-----------------------------------------------------------------------------------------------*/
+/* Defines                                                                                       */
+/*-----------------------------------------------------------------------------------------------*/
+/** @defgroup main_defines Defines
+ * @{
+ */
 #define USART_BAUDRATE 115200
 #define RX_BUFFER_SIZE 32
 #define QUEUE_ITEMS_COUNT 1
+/**
+  * @}
+  */
 
+/*-----------------------------------------------------------------------------------------------*/
+/* Private variables                                                                             */
+/*-----------------------------------------------------------------------------------------------*/
+/** @defgroup main_private_variables Private variables
+  * @{
+  */
 uint8_t u08RxByte;
 volatile uint8_t u08Index;
 UART_HandleTypeDef stUsartHandle;
@@ -11,12 +58,34 @@ uint8_t u08RxBuffer[RX_BUFFER_SIZE];
 
 osThreadId stLedThreadHandle;
 osThreadId stUsartThreadHandle;
-osMessageQId stButtonQueue;
+osMessageQId stQueue;
+/**
+  * @}
+  */
 
+/*-----------------------------------------------------------------------------------------------*/
+/* Private function prototypes ------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------*/
+/** @defgroup main_private_function_prototypes Private function prototypes
+  * @{
+  */
 static void usart_init(void);
 static void led_thread_handler(void const * argument);
 static void usart_thread_handler(void const * argument);
+/**
+  * @}
+  */
 
+/*-----------------------------------------------------------------------------------------------*/
+/* Exported functions                                                                            */
+/*-----------------------------------------------------------------------------------------------*/
+/** @defgroup main_exported_functions Main function
+  * @{
+  */
+/** ***********************************************************************************************
+  * @brief      Main entry point
+  * @return     Returns nothing
+  ********************************************************************************************** */
 int main(void)
 {
   HAL_Init();
@@ -27,13 +96,27 @@ int main(void)
 
   stLedThreadHandle = osThreadCreate(osThread(led), NULL);
   stUsartThreadHandle = osThreadCreate(osThread(usart), NULL);
-  stButtonQueue = osMessageCreate(osMessageQ(queue), stLedThreadHandle);
+  stQueue = osMessageCreate(osMessageQ(queue), stLedThreadHandle);
 
   osKernelStart();
 
   while(1) {}
 }
+/**
+  * @}
+  */
 
+/*-----------------------------------------------------------------------------------------------*/
+/* Private functions                                                                             */
+/*-----------------------------------------------------------------------------------------------*/
+/** @defgroup main_private_functions
+  * @{
+  */
+/**************************************************************************************************
+  * @brief      LED thread handler
+  * @param      argument argument pointer to be passed to thread handler
+  * @return     Returns nothing
+  ********************************************************************************************** */
 static void led_thread_handler(void const * argument)
 {
   osEvent stEvent;
@@ -45,7 +128,7 @@ static void led_thread_handler(void const * argument)
   BSP_LED_Init(LED_RED);
   for(;;)
   {
-    stEvent = osMessageGet(stButtonQueue, osWaitForever);
+    stEvent = osMessageGet(stQueue, osWaitForever);
     if(osEventMessage == stEvent.status)
     {
       BSP_LED_Toggle(LED_GREEN);
@@ -56,6 +139,11 @@ static void led_thread_handler(void const * argument)
   }
 }
 
+/**************************************************************************************************
+  * @brief      USART thread handler
+  * @param      argument argument pointer to be passed to thread handler
+  * @return     Returns nothing
+  ********************************************************************************************** */
 static void usart_thread_handler(void const * argument)
 {
   const uint32_t u32MsgDelayMs = 1000;
@@ -64,11 +152,18 @@ static void usart_thread_handler(void const * argument)
   HAL_UART_Receive_IT(&stUsartHandle, &u08RxByte, sizeof(u08RxByte));
   for(;;)
   {
-    HAL_UART_Transmit(&stUsartHandle, (uint8_t *)"Hello world\n", (sizeof("Hello world\n")-1), 100);
+    HAL_UART_Transmit(&stUsartHandle,
+                      (uint8_t *)"Hello world\n",
+                      (sizeof("Hello world\n")-1),
+                      100);
     osDelay(u32MsgDelayMs);
   }
 }
 
+/**************************************************************************************************
+  * @brief      Initialize and configure uart
+  * @return     Returns nothing
+  ********************************************************************************************** */
 static void usart_init(void)
 {
   GPIO_InitTypeDef stUsartGpio = {0};
@@ -106,14 +201,24 @@ static void usart_init(void)
   }
 }
 
+/**************************************************************************************************
+  * @brief      BUTTON callback
+  * @param      u16GpioPin interrupt pin number
+  * @return     Returns nothing
+  ********************************************************************************************** */
 void HAL_GPIO_EXTI_Callback(uint16_t u16GpioPin)
 {
   if(USER_BUTTON_PIN == u16GpioPin)
   {
-    osMessagePut(stButtonQueue, (uint32_t)0xFF, 0);
+    osMessagePut(stQueue, (uint32_t)0xFF, 0);
   }
 }
 
+/**************************************************************************************************
+  * @brief      UART receive callback
+  * @param      stHandle uart handle Structure
+  * @return     Returns nothing
+  ********************************************************************************************** */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *stHandle)
 {
   if(USART3 == stHandle->Instance)
@@ -126,3 +231,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *stHandle)
     HAL_UART_Receive_IT(&stUsartHandle, &u08RxByte, sizeof(u08RxByte));
   }
 }
+/**
+ * @}
+ */
+
+/**
+  * @}
+  */
