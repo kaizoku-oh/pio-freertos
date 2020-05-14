@@ -2,10 +2,7 @@
 
 #define USART_BAUDRATE 115200
 #define RX_BUFFER_SIZE 32
-
-static void usart_init(void);
-static void led_thread_handler(void const * argument);
-static void usart_thread_handler(void const * argument);
+#define QUEUE_ITEMS_COUNT 1
 
 uint8_t u08RxByte;
 volatile uint8_t u08Index;
@@ -14,6 +11,11 @@ uint8_t u08RxBuffer[RX_BUFFER_SIZE];
 
 osThreadId stLedThreadHandle;
 osThreadId stUsartThreadHandle;
+osMessageQId stButtonQueue;
+
+static void usart_init(void);
+static void led_thread_handler(void const * argument);
+static void usart_thread_handler(void const * argument);
 
 int main(void)
 {
@@ -21,9 +23,11 @@ int main(void)
 
   osThreadDef(led, led_thread_handler, osPriorityNormal, 0, 128);
   osThreadDef(usart, usart_thread_handler, osPriorityNormal, 0, 128);
+  osMessageQDef(queue, QUEUE_ITEMS_COUNT, uint32_t);
 
   stLedThreadHandle = osThreadCreate(osThread(led), NULL);
   stUsartThreadHandle = osThreadCreate(osThread(usart), NULL);
+  stButtonQueue = osMessageCreate(osMessageQ(queue), stLedThreadHandle);
 
   osKernelStart();
 
@@ -32,16 +36,22 @@ int main(void)
 
 static void led_thread_handler(void const * argument)
 {
+  osEvent stEvent;
   const uint32_t u32BlinkDelayMs = 1000;
-
+  
+  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
   BSP_LED_Init(LED_GREEN);
   BSP_LED_Init(LED_BLUE);
   BSP_LED_Init(LED_RED);
   for(;;)
   {
-    BSP_LED_Toggle(LED_GREEN);
-    BSP_LED_Toggle(LED_BLUE);
-    BSP_LED_Toggle(LED_RED);
+    stEvent = osMessageGet(stButtonQueue, osWaitForever);
+    if(osEventMessage == stEvent.status)
+    {
+      BSP_LED_Toggle(LED_GREEN);
+      BSP_LED_Toggle(LED_BLUE);
+      BSP_LED_Toggle(LED_RED);
+    }
     osDelay(u32BlinkDelayMs);
   }
 }
@@ -54,7 +64,7 @@ static void usart_thread_handler(void const * argument)
   HAL_UART_Receive_IT(&stUsartHandle, &u08RxByte, sizeof(u08RxByte));
   for(;;)
   {
-    HAL_UART_Transmit_IT(&stUsartHandle, (uint8_t *)"Hello world\n", (sizeof("Hello world\n")-1));
+    HAL_UART_Transmit(&stUsartHandle, (uint8_t *)"Hello world\n", (sizeof("Hello world\n")-1), 100);
     osDelay(u32MsgDelayMs);
   }
 }
@@ -80,7 +90,7 @@ static void usart_init(void)
   HAL_NVIC_EnableIRQ(USART3_IRQn);
 
   /* Initialize usart configs */
-  stUsartHandle.Instance = USART3;
+  stUsartHandle.Instance = USARTx;
   stUsartHandle.Init.BaudRate = USART_BAUDRATE;
   stUsartHandle.Init.WordLength = UART_WORDLENGTH_8B;
   stUsartHandle.Init.StopBits = UART_STOPBITS_1;
@@ -93,6 +103,14 @@ static void usart_init(void)
   if(HAL_OK != HAL_UART_Init(&stUsartHandle))
   {
     while(1) {}
+  }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t u16GpioPin)
+{
+  if(USER_BUTTON_PIN == u16GpioPin)
+  {
+    osMessagePut(stButtonQueue, (uint32_t)0xFF, 0);
   }
 }
 
