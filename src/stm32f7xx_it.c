@@ -65,7 +65,7 @@ void EXTI15_10_IRQHandler(void)
   ********************************************************************************************** */
 void USART3_IRQHandler(void)
 {
-  if(TRUE == usart_get_handle(&stUsartHandle))
+  if(TRUE == get_usart_handle(&stUsartHandle))
   {
     HAL_UART_IRQHandler(&stUsartHandle);
   }
