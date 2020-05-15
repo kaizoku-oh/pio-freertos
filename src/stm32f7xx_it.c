@@ -34,12 +34,12 @@
   */
 
 /*-----------------------------------------------------------------------------------------------*/
-/* Imported variables                                                                            */
+/* Private variables                                                                             */
 /*-----------------------------------------------------------------------------------------------*/
-/** @defgroup stm32f7xx_it_imported_variables Imported variables
+/** @defgroup stm32f7xx_it_private_variables Private variables
   * @{
   */
-extern UART_HandleTypeDef stUsartHandle;
+UART_HandleTypeDef stUsartHandle;
 /**
   * @}
   */
@@ -65,7 +65,10 @@ void EXTI15_10_IRQHandler(void)
   ********************************************************************************************** */
 void USART3_IRQHandler(void)
 {
-  HAL_UART_IRQHandler(&stUsartHandle);
+  if(TRUE == usart_get_handle(&stUsartHandle))
+  {
+    HAL_UART_IRQHandler(&stUsartHandle);
+  }
 }
 
 /**************************************************************************************************
@@ -74,39 +77,14 @@ void USART3_IRQHandler(void)
   * @return     Returns nothing
   ********************************************************************************************** */
 void NMI_Handler(void)
-{
-}
+{}
+
 /**************************************************************************************************
   * @brief      Handle debug monitor
   * @return     Returns nothing
   ********************************************************************************************** */
 void DebugMon_Handler(void)
-{
-}
-
-
-/**************************************************************************************************
-  * @brief      Handle system tick timer
-  * @return     Returns nothing
-  ********************************************************************************************** */
-// void SysTick_Handler(void)
-// {
-//   HAL_IncTick();
-// }
-
-/**************************************************************************************************
-  * @brief      Handle system service call via SWI instruction
-  * @return     Returns nothing
-  ********************************************************************************************** */
-// void SVC_Handler(void)
-// {}
-
-/**************************************************************************************************
-  * @brief      Handle pendable request for system service
-  * @return     Returns nothing
-  ********************************************************************************************** */
-// void PendSV_Handler(void)
-// {}
+{}
 
 /**************************************************************************************************
   * @brief      Handle hard fault interrupt
