@@ -58,8 +58,7 @@
 #define USARTx_TX_PIN                            GPIO_PIN_8
 #define USARTx_RX_PIN                            GPIO_PIN_9
 
-#define USARTx_TX_AF                             GPIO_AF7_USART3
-#define USARTx_RX_AF                             GPIO_AF7_USART3
+#define USARTx_AF                                GPIO_AF7_USART3
 
 /* Ports Config */
 #define USARTx_GPIO_PORT                         GPIOD
@@ -106,7 +105,7 @@ typedef unsigned char                            bool;
 /** @defgroup main_exported_function_prototypes Exported function prototypes
   * @{
   */
-bool usart_get_handle(UART_HandleTypeDef *stHandle);
+bool get_usart_handle(UART_HandleTypeDef *stHandle);
 /**
   * @}
   */

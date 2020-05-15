@@ -5,7 +5,7 @@
  * @author  : Bayrem GHARSELLAOUI
  * @version : 1.4.0
  * @date    : May 2020
- * @brief   : Application entry point file
+ * @brief   : Application entry point source file
  * 
  **************************************************************************************************
  * 
@@ -39,14 +39,32 @@
 /** @defgroup main_defines Defines
  * @{
  */
+#define THREAD_STACK_SIZE                        128
+#define QUEUE_ITEMS_COUNT                        8
+#define QUEUE_MESSAGE                            (uint32_t)0xFF
 #define USART_BAUDRATE                           115200
 #define USART_TX_TIMEOUT_MS                      100
 #define RX_BUFFER_SIZE                           32
-#define QUEUE_ITEMS_COUNT                        8
-#define QUEUE_MESSAGE                            (uint32_t)0xFF
+
+/* Renaming ST functions and types to match coding style */
+#define hal_init                                 HAL_Init
+#define hal_gpio_init                            HAL_GPIO_Init
+#define hal_nvic_set_priority                    HAL_NVIC_SetPriority
+#define hal_nvic_enable_irq                      HAL_NVIC_EnableIRQ
+#define hal_uart_init                            HAL_UART_Init
+#define hal_usart_receive_it                     HAL_UART_Receive_IT
+#define hal_usart_transmit                       HAL_UART_Transmit
+#define bsp_button_init                          BSP_PB_Init
+#define bsp_led_init                             BSP_LED_Init
+#define bsp_led_toggle                           BSP_LED_Toggle
+#define usart_on_byte_received_cb                HAL_UART_RxCpltCallback
+#define gpio_on_button_pressed_cb                HAL_GPIO_EXTI_Callback
+#define uart_handle_t                            UART_HandleTypeDef
+#define gpio_init_t                              GPIO_InitTypeDef
 /**
   * @}
   */
+
 /*-----------------------------------------------------------------------------------------------*/
 /* Private types                                                                                 */
 /*-----------------------------------------------------------------------------------------------*/
@@ -58,8 +76,8 @@ typedef struct
 {
   osThreadId stThreadHandle;                                       /**< Thread handler           */
   osMessageQId stQueue;                                            /**< Queue handler            */
-  UART_HandleTypeDef stUsartHandle;                                /**< USART handle             */
-  uint8_t u08RxBuffer[RX_BUFFER_SIZE];                             /**< USART rx buffer          */
+  uart_handle_t stUsartHandle;                                     /**< USART handle             */
+  uint8_t tu08RxBuffer[RX_BUFFER_SIZE];                            /**< USART rx buffer          */
   uint8_t u08RxByte;                                               /**< USART rx byte            */
   volatile uint8_t u08Index;                                       /**< USART rx byte index      */
 }main_ctx_t;
@@ -102,9 +120,9 @@ static void thread_handler(void const * argument);
   ********************************************************************************************** */
 int main(void)
 {
-  HAL_Init();
+  hal_init();
 
-  osThreadDef(thread, thread_handler, osPriorityNormal, 0, 128);
+  osThreadDef(thread, thread_handler, osPriorityNormal, 0, THREAD_STACK_SIZE);
   osMessageQDef(queue, QUEUE_ITEMS_COUNT, uint32_t);
 
   stMainCtx.stThreadHandle = osThreadCreate(osThread(thread), NULL);
@@ -112,7 +130,8 @@ int main(void)
 
   osKernelStart();
 
-  while(1) {}
+  while(1)
+  {}
 }
 
 /**************************************************************************************************
@@ -120,7 +139,7 @@ int main(void)
   * @param      stHandle usart handle
   * @return     Returns a boolean indicating if we get the handle successfully or not
   ********************************************************************************************** */
-bool usart_get_handle(UART_HandleTypeDef *stHandle)
+bool get_usart_handle(uart_handle_t *stHandle)
 {
   bool bRet;
 
@@ -143,7 +162,7 @@ bool usart_get_handle(UART_HandleTypeDef *stHandle)
   * @{
   */
 /**************************************************************************************************
-  * @brief      LED thread handler
+  * @brief      Thread handler
   * @param      argument argument pointer to be passed to thread handler
   * @return     Returns nothing
   ********************************************************************************************** */
@@ -152,25 +171,25 @@ static void thread_handler(void const * argument)
   osEvent stEvent;
   
   usart_init();
-  HAL_UART_Receive_IT(&stMainCtx.stUsartHandle, &stMainCtx.u08RxByte, sizeof(stMainCtx.u08RxByte));
+  hal_usart_receive_it(&stMainCtx.stUsartHandle, &stMainCtx.u08RxByte, sizeof(stMainCtx.u08RxByte));
 
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
+  bsp_button_init(BUTTON_USER, BUTTON_MODE_EXTI);
   
-  BSP_LED_Init(LED_GREEN);
-  BSP_LED_Init(LED_BLUE);
-  BSP_LED_Init(LED_RED);
+  bsp_led_init(LED_GREEN);
+  bsp_led_init(LED_BLUE);
+  bsp_led_init(LED_RED);
   for(;;)
   {
     stEvent = osMessageGet(stMainCtx.stQueue, osWaitForever);
     if(osEventMessage == stEvent.status)
     {
-      HAL_UART_Transmit(&stMainCtx.stUsartHandle,
-                        (uint8_t *)"Button pressed!\n",
-                        (sizeof("Button pressed!\n")-1),
-                        USART_TX_TIMEOUT_MS);
-      BSP_LED_Toggle(LED_GREEN);
-      BSP_LED_Toggle(LED_BLUE);
-      BSP_LED_Toggle(LED_RED);
+      hal_usart_transmit(&stMainCtx.stUsartHandle,
+                         (uint8_t *)"Button pressed!\n",
+                         (sizeof("Button pressed!\n")-1),
+                         USART_TX_TIMEOUT_MS);
+      bsp_led_toggle(LED_GREEN);
+      bsp_led_toggle(LED_BLUE);
+      bsp_led_toggle(LED_RED);
     }
   }
 }
@@ -181,23 +200,23 @@ static void thread_handler(void const * argument)
   ********************************************************************************************** */
 static void usart_init(void)
 {
-  GPIO_InitTypeDef stUsartGpio = {0};
+  gpio_init_t stUsartGpio = {0};
 
   /* Initialize usart clock */
   USARTx_CLK_ENABLE();
   USARTx_GPIO_CLK_ENABLE();
   
   /* Initialize usart gpio */
-  stUsartGpio.Pin = USARTx_TX_PIN|USARTx_RX_PIN;
+  stUsartGpio.Pin = USARTx_TX_PIN | USARTx_RX_PIN;
   stUsartGpio.Mode = GPIO_MODE_AF_PP;
   stUsartGpio.Pull = GPIO_NOPULL;
   stUsartGpio.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  stUsartGpio.Alternate = GPIO_AF7_USART3;
-  HAL_GPIO_Init(USARTx_GPIO_PORT, &stUsartGpio);
+  stUsartGpio.Alternate = USARTx_AF;
+  hal_gpio_init(USARTx_GPIO_PORT, &stUsartGpio);
 
   /* Initialize usart interrupt */
-  HAL_NVIC_SetPriority(USART3_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(USART3_IRQn);
+  hal_nvic_set_priority(USART3_IRQn, 5, 0);
+  hal_nvic_enable_irq(USART3_IRQn);
 
   /* Initialize usart configs */
   stMainCtx.stUsartHandle.Instance = USARTx;
@@ -210,20 +229,21 @@ static void usart_init(void)
   stMainCtx.stUsartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
   stMainCtx.stUsartHandle.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   stMainCtx.stUsartHandle.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if(HAL_OK != HAL_UART_Init(&stMainCtx.stUsartHandle))
+  if(HAL_OK != hal_uart_init(&stMainCtx.stUsartHandle))
   {
-    while(1) {}
+    while(1)
+    {}
   }
 }
 
 /**************************************************************************************************
   * @brief      BUTTON callback
-  * @param      u16GpioPin interrupt pin number
+  * @param      u16Pin interrupt pin number
   * @return     Returns nothing
   ********************************************************************************************** */
-void HAL_GPIO_EXTI_Callback(uint16_t u16GpioPin)
+void gpio_on_button_pressed_cb(uint16_t u16Pin)
 {
-  if(USER_BUTTON_PIN == u16GpioPin)
+  if(USER_BUTTON_PIN == u16Pin)
   {
     osMessagePut(stMainCtx.stQueue, QUEUE_MESSAGE, 0);
   }
@@ -234,7 +254,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t u16GpioPin)
   * @param      stHandle uart handle Structure
   * @return     Returns nothing
   ********************************************************************************************** */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *stHandle)
+void usart_on_byte_received_cb(uart_handle_t *stHandle)
 {
   if(USART3 == stHandle->Instance)
   {
@@ -242,10 +262,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *stHandle)
     {
       stMainCtx.u08Index = 0;
     }
-    stMainCtx.u08RxBuffer[stMainCtx.u08Index++] = stMainCtx.u08RxByte;
-    HAL_UART_Receive_IT(&stMainCtx.stUsartHandle,
-                        &stMainCtx.u08RxByte,
-                        sizeof(stMainCtx.u08RxByte));
+    stMainCtx.tu08RxBuffer[stMainCtx.u08Index++] = stMainCtx.u08RxByte;
+    hal_usart_receive_it(&stMainCtx.stUsartHandle,
+                         &stMainCtx.u08RxByte,
+                         sizeof(stMainCtx.u08RxByte));
   }
 }
 /**
