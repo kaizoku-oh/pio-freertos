@@ -39,7 +39,7 @@
 /** @defgroup stm32f7xx_it_private_variables Private variables
   * @{
   */
-UART_HandleTypeDef stUsartHandle;
+static UART_HandleTypeDef stUsartHandle;
 /**
   * @}
   */
@@ -73,7 +73,6 @@ void USART3_IRQHandler(void)
 
 /**************************************************************************************************
   * @brief      Handle non maskable interrupt
-  * @param      argument argument pointer to be passed to thread handler
   * @return     Returns nothing
   ********************************************************************************************** */
 void NMI_Handler(void)
