@@ -40,7 +40,6 @@
  * @{
  */
 #include "stm32f7xx_nucleo_144.h"
-#include "cmsis_os.h"
 /**
   * @}
   */
@@ -51,6 +50,10 @@
 /** @defgroup main_defines Defines
  * @{
  */
+/* Boolean defines */
+#define TRUE                                     (bool)(1==1)
+#define FALSE                                    (bool)(0==1)
+
 /* Pins Config */
 #define USARTx_TX_PIN                            GPIO_PIN_8
 #define USARTx_RX_PIN                            GPIO_PIN_9
@@ -87,6 +90,26 @@
   * @}
   */
 
+/*-----------------------------------------------------------------------------------------------*/
+/* Exported types                                                                                 */
+/*-----------------------------------------------------------------------------------------------*/
+/** @defgroup main_types Exported types
+  * @{
+  */
+typedef unsigned char                            bool;
+/**
+  * @}
+  */
+/*-----------------------------------------------------------------------------------------------*/
+/* Exported function prototypes ------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------*/
+/** @defgroup main_exported_function_prototypes Exported function prototypes
+  * @{
+  */
+bool usart_get_handle(UART_HandleTypeDef *stHandle);
+/**
+  * @}
+  */
 /**
   * @}
   */
